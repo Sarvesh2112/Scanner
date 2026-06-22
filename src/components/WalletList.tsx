@@ -1,23 +1,14 @@
 import { useMemo, useState } from 'react'
 import type { BusinessCard } from '../types'
-import type { Theme } from '../useTheme'
 import CardItem from './CardItem'
 
 interface Props {
   cards: BusinessCard[]
   onScanNew: () => void
   onDelete: (id: string) => void
-  theme: Theme
-  onToggleTheme: () => void
 }
 
-export default function WalletList({
-  cards,
-  onScanNew,
-  onDelete,
-  theme,
-  onToggleTheme,
-}: Props) {
+export default function WalletList({ cards, onScanNew, onDelete }: Props) {
   const [filter, setFilter] = useState('')
   const [query, setQuery] = useState('')
 
@@ -44,13 +35,7 @@ export default function WalletList({
       <header className="topbar">
         <span />
         <h1>Card Wallet</h1>
-        <button
-          className="link theme-toggle"
-          onClick={onToggleTheme}
-          aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
+        <span />
       </header>
 
       <div className="list-body">

@@ -9,16 +9,6 @@
   --radius: 14px;
 }
 
-:root[data-theme='light'] {
-  --bg: #f4f6fb;
-  --surface: #ffffff;
-  --surface-2: #e7ebf4;
-  --text: #14182a;
-  --muted: #5b6480;
-  --accent: #4f7cff;
-  --danger: #e23748;
-}
-
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -62,11 +52,6 @@ body {
 }
 .topbar .link {
   justify-self: start;
-}
-.topbar .theme-toggle {
-  justify-self: end;
-  font-size: 20px;
-  line-height: 1;
 }
 
 button {
