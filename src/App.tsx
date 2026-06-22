@@ -4,6 +4,7 @@ import { deleteCard, getAllCards, saveCard } from './db'
 import WalletList from './components/WalletList'
 import CaptureView from './components/CaptureView'
 import ReviewForm from './components/ReviewForm'
+import { useTheme } from './useTheme'
 
 type View =
   | { name: 'wallet' }
@@ -13,6 +14,7 @@ type View =
 export default function App() {
   const [cards, setCards] = useState<BusinessCard[]>([])
   const [view, setView] = useState<View>({ name: 'wallet' })
+  const { theme, toggle } = useTheme()
 
   useEffect(() => {
     getAllCards().then(setCards)
@@ -56,6 +58,8 @@ export default function App() {
       cards={cards}
       onScanNew={() => setView({ name: 'capture' })}
       onDelete={handleDelete}
+      theme={theme}
+      onToggleTheme={toggle}
     />
   )
 }
