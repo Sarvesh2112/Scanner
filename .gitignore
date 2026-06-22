@@ -1,0 +1,11 @@
+node_modules
+dist
+.tsbuild
+*.tsbuildinfo
+.DS_Store
+
+# local env (API keys)
+.env*.local
+
+# local Claude settings
+.claude/
