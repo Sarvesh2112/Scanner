@@ -59,26 +59,28 @@ function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }
   }, [])
 
   async function handleSave(card: BusinessCard) {
+    // Optimistically show the card and return to the wallet immediately;
+    // persist in the background and roll back if it fails.
+    setCards((cs) => [card, ...cs])
+    setView({ name: 'wallet' })
     try {
       await saveCard(card)
-      setCards(await getAllCards())
-      setView({ name: 'wallet' })
     } catch (e) {
       console.error('Save failed:', e)
       alert(`Save failed: ${formatErr(e)}`)
-      throw e // let the caller reset its loading state
+      setCards((cs) => cs.filter((c) => c.id !== card.id))
     }
   }
 
-  async function handleDelete(id: string) {
-    try {
-      await deleteCard(id)
-      setCards(await getAllCards())
-    } catch (e) {
+  function handleDelete(id: string) {
+    // Remove from the UI immediately; delete in the background, restore on error.
+    const removed = cards.find((c) => c.id === id)
+    setCards((cs) => cs.filter((c) => c.id !== id))
+    deleteCard(id).catch((e) => {
       console.error('Delete failed:', e)
       alert(`Delete failed: ${formatErr(e)}`)
-      throw e // let the caller reset its loading state
-    }
+      if (removed) setCards((cs) => [removed, ...cs].sort((a, b) => b.createdAt - a.createdAt))
+    })
   }
 
   if (view.name === 'capture') {

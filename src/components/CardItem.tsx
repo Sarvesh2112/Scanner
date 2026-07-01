@@ -6,13 +6,12 @@ import ConfirmSheet from './ConfirmSheet'
 
 interface Props {
   card: BusinessCard
-  onDelete: (id: string) => Promise<void>
+  onDelete: (id: string) => void
 }
 
 export default function CardItem({ card, onDelete }: Props) {
   const [adding, setAdding] = useState(false)
   const [confirming, setConfirming] = useState(false)
-  const [deleting, setDeleting] = useState(false)
 
   function handleAddContact() {
     setAdding(true)
@@ -21,15 +20,10 @@ export default function CardItem({ card, onDelete }: Props) {
     setTimeout(() => setAdding(false), 600)
   }
 
-  async function handleConfirmDelete() {
-    setDeleting(true)
-    try {
-      await onDelete(card.id)
-      // On success this card unmounts; no need to reset state.
-    } catch {
-      setDeleting(false)
-      setConfirming(false)
-    }
+  function handleConfirmDelete() {
+    // Close the sheet and remove the card immediately; delete runs in the background.
+    setConfirming(false)
+    onDelete(card.id)
   }
 
   return (
@@ -60,11 +54,7 @@ export default function CardItem({ card, onDelete }: Props) {
         >
           {adding ? <Spinner /> : '+ Add to Contacts'}
         </button>
-        <button
-          className="btn small danger"
-          onClick={() => setConfirming(true)}
-          disabled={deleting}
-        >
+        <button className="btn small danger" onClick={() => setConfirming(true)}>
           Delete
         </button>
       </div>
@@ -75,7 +65,6 @@ export default function CardItem({ card, onDelete }: Props) {
           message="This can't be undone."
           confirmLabel="Delete"
           destructive
-          loading={deleting}
           onConfirm={handleConfirmDelete}
           onCancel={() => setConfirming(false)}
         />

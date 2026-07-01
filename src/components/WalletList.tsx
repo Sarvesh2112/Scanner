@@ -8,7 +8,7 @@ interface Props {
   user: GoogleUser
   onSignOut: () => void
   onScanNew: () => void
-  onDelete: (id: string) => Promise<void>
+  onDelete: (id: string) => void
 }
 
 export default function WalletList({
