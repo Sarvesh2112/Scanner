@@ -14,7 +14,7 @@ export default function SignIn() {
 
   return (
     <div className="view signin">
-      <div className="signin-body">
+      <div className="signin-center">
         <div className="signin-icon">
           <svg width="42" height="42" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
@@ -28,6 +28,8 @@ export default function SignIn() {
         </div>
         <h1>Card Wallet</h1>
         <p className="muted">Scan, organize, and save business cards.</p>
+      </div>
+      <div className="signin-footer">
         <div ref={btnRef} className="google-btn-slot" />
         {error && <p className="error">{error}</p>}
       </div>

@@ -43,7 +43,20 @@ export default function WalletList({
   return (
     <div className="view">
       <header className="wallet-header">
-        <h1 className="large-title">Card Wallet</h1>
+        <div className="brand">
+          <span className="brand-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M3 8a3 3 0 0 1 3-3h11a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v6a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8Z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinejoin="round"
+              />
+              <circle cx="17" cy="13" r="1.6" fill="currentColor" />
+            </svg>
+          </span>
+          <h1 className="large-title">Card Wallet</h1>
+        </div>
         <div className="account">
           <button
             className="avatar-btn"
