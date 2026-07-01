@@ -46,14 +46,24 @@ function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }
   }, [])
 
   async function handleSave(card: BusinessCard) {
-    await saveCard(card)
-    setCards(await getAllCards())
-    setView({ name: 'wallet' })
+    try {
+      await saveCard(card)
+      setCards(await getAllCards())
+      setView({ name: 'wallet' })
+    } catch (e) {
+      console.error('Save failed:', e)
+      alert(`Save failed: ${e instanceof Error ? e.message : String(e)}`)
+    }
   }
 
   async function handleDelete(id: string) {
-    await deleteCard(id)
-    setCards(await getAllCards())
+    try {
+      await deleteCard(id)
+      setCards(await getAllCards())
+    } catch (e) {
+      console.error('Delete failed:', e)
+      alert(`Delete failed: ${e instanceof Error ? e.message : String(e)}`)
+    }
   }
 
   if (view.name === 'capture') {
