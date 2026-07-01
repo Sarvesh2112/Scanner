@@ -15,8 +15,19 @@ export default function SignIn() {
   return (
     <div className="view signin">
       <div className="signin-body">
+        <div className="signin-icon">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M3 8a3 3 0 0 1 3-3h11a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v6a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8Z"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinejoin="round"
+            />
+            <circle cx="17" cy="13" r="1.6" fill="currentColor" />
+          </svg>
+        </div>
         <h1>Card Wallet</h1>
-        <p className="muted">Sign in to access your cards.</p>
+        <p className="muted">Scan, organize, and save business cards.</p>
         <div ref={btnRef} className="google-btn-slot" />
         {error && <p className="error">{error}</p>}
       </div>

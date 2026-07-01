@@ -20,6 +20,7 @@ export default function WalletList({
 }: Props) {
   const [filter, setFilter] = useState('')
   const [query, setQuery] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const categories = useMemo(() => {
     const set = new Set<string>()
@@ -43,19 +44,54 @@ export default function WalletList({
     <div className="view">
       <header className="wallet-header">
         <h1 className="large-title">Card Wallet</h1>
-        <button
-          className="avatar-btn"
-          title={`${user.name} — Sign out`}
-          onClick={onSignOut}
-        >
-          {user.picture ? (
-            <img src={user.picture} alt={user.name} referrerPolicy="no-referrer" />
-          ) : (
-            <span className="avatar-fallback">
-              {user.name.charAt(0).toUpperCase()}
-            </span>
+        <div className="account">
+          <button
+            className="avatar-btn"
+            title={user.name}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            {user.picture ? (
+              <img src={user.picture} alt={user.name} referrerPolicy="no-referrer" />
+            ) : (
+              <span className="avatar-fallback">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </button>
+
+          {menuOpen && (
+            <>
+              <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
+              <div className="account-menu" role="menu">
+                <div className="account-info">
+                  {user.picture ? (
+                    <img src={user.picture} alt="" referrerPolicy="no-referrer" />
+                  ) : (
+                    <span className="avatar-fallback">
+                      {user.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                  <div className="account-text">
+                    <p className="account-name">{user.name}</p>
+                    <p className="account-email">{user.email}</p>
+                  </div>
+                </div>
+                <button
+                  className="menu-item destructive"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    onSignOut()
+                  }}
+                >
+                  Log out
+                </button>
+              </div>
+            </>
           )}
-        </button>
+        </div>
       </header>
 
       <div className="list-body">

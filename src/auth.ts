@@ -24,7 +24,15 @@ interface GoogleAccountsId {
   }): void
   renderButton(
     parent: HTMLElement,
-    options: { theme?: string; size?: string; width?: number; text?: string },
+    options: {
+      type?: string
+      theme?: string
+      size?: string
+      width?: number
+      text?: string
+      shape?: string
+      logo_alignment?: string
+    },
   ): void
   disableAutoSelect(): void
 }
@@ -84,10 +92,15 @@ async function ensureInitialized() {
 /** Renders the official "Sign in with Google" button into `el`. */
 export async function renderGoogleButton(el: HTMLElement) {
   await ensureInitialized()
+  const width = Math.min(400, Math.max(240, Math.round(el.clientWidth) || 300))
   window.google!.accounts.id.renderButton(el, {
-    theme: 'outline',
+    type: 'standard',
+    theme: 'filled_black',
     size: 'large',
     text: 'continue_with',
+    shape: 'pill',
+    logo_alignment: 'center',
+    width,
   })
 }
 
