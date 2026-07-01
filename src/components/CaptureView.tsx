@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { extractCardFields } from '../gemini'
 import type { ParsedFields } from '../types'
+import AiSparkle from './AiSparkle'
 
 interface Props {
   onScanned: (fields: ParsedFields, imageDataUrl: string) => void
@@ -20,12 +21,12 @@ export default function CaptureView({ onScanned, onCancel }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string>('')
   const [busy, setBusy] = useState(false)
-  const [statusText, setStatusText] = useState('')
-  const [progress, setProgress] = useState(0)
+  const [errorText, setErrorText] = useState('')
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    setErrorText('')
     const dataUrl = await fileToDataUrl(file)
     setPreview(dataUrl)
   }
@@ -33,14 +34,13 @@ export default function CaptureView({ onScanned, onCancel }: Props) {
   async function handleScan() {
     if (!preview) return
     setBusy(true)
-    setProgress(0)
-    setStatusText('Reading card with AI…')
+    setErrorText('')
     try {
       const fields = await extractCardFields(preview)
       onScanned(fields, preview)
     } catch (err) {
       console.error(err)
-      setStatusText(
+      setErrorText(
         err instanceof Error ? err.message : 'Could not read the card. Try another photo.',
       )
       setBusy(false)
@@ -76,14 +76,7 @@ export default function CaptureView({ onScanned, onCancel }: Props) {
         />
 
         {busy ? (
-          <div className="progress">
-            <div className="bar">
-              <div className="fill" style={{ width: `${progress}%` }} />
-            </div>
-            <p className="status">
-              {statusText} {progress > 0 ? `${progress}%` : ''}
-            </p>
-          </div>
+          <AiSparkle />
         ) : (
           <div className="actions">
             <button className="btn" onClick={() => inputRef.current?.click()}>
@@ -94,6 +87,7 @@ export default function CaptureView({ onScanned, onCancel }: Props) {
                 Scan card
               </button>
             )}
+            {errorText && <p className="error">{errorText}</p>}
           </div>
         )}
       </div>

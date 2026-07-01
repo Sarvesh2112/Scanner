@@ -1,12 +1,37 @@
+import { useState } from 'react'
 import type { BusinessCard } from '../types'
 import { downloadVCard } from '../vcard'
+import Spinner from './Spinner'
+import ConfirmSheet from './ConfirmSheet'
 
 interface Props {
   card: BusinessCard
-  onDelete: (id: string) => void
+  onDelete: (id: string) => Promise<void>
 }
 
 export default function CardItem({ card, onDelete }: Props) {
+  const [adding, setAdding] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  function handleAddContact() {
+    setAdding(true)
+    downloadVCard(card)
+    // downloadVCard is synchronous; brief busy state gives tactile feedback.
+    setTimeout(() => setAdding(false), 600)
+  }
+
+  async function handleConfirmDelete() {
+    setDeleting(true)
+    try {
+      await onDelete(card.id)
+      // On success this card unmounts; no need to reset state.
+    } catch {
+      setDeleting(false)
+      setConfirming(false)
+    }
+  }
+
   return (
     <div className="card">
       <div className="card-main">
@@ -28,13 +53,33 @@ export default function CardItem({ card, onDelete }: Props) {
         </div>
       </div>
       <div className="card-actions">
-        <button className="btn small primary" onClick={() => downloadVCard(card)}>
-          + Add to Contacts
+        <button
+          className="btn small primary"
+          onClick={handleAddContact}
+          disabled={adding}
+        >
+          {adding ? <Spinner /> : '+ Add to Contacts'}
         </button>
-        <button className="btn small danger" onClick={() => onDelete(card.id)}>
+        <button
+          className="btn small danger"
+          onClick={() => setConfirming(true)}
+          disabled={deleting}
+        >
           Delete
         </button>
       </div>
+
+      {confirming && (
+        <ConfirmSheet
+          title="Delete this card?"
+          message="This can't be undone."
+          confirmLabel="Delete"
+          destructive
+          loading={deleting}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setConfirming(false)}
+        />
+      )}
     </div>
   )
 }

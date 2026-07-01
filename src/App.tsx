@@ -66,6 +66,7 @@ function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }
     } catch (e) {
       console.error('Save failed:', e)
       alert(`Save failed: ${formatErr(e)}`)
+      throw e // let the caller reset its loading state
     }
   }
 
@@ -76,6 +77,7 @@ function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }
     } catch (e) {
       console.error('Delete failed:', e)
       alert(`Delete failed: ${formatErr(e)}`)
+      throw e // let the caller reset its loading state
     }
   }
 

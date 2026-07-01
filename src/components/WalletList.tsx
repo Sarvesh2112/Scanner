@@ -8,7 +8,7 @@ interface Props {
   user: GoogleUser
   onSignOut: () => void
   onScanNew: () => void
-  onDelete: (id: string) => void
+  onDelete: (id: string) => Promise<void>
 }
 
 export default function WalletList({
@@ -41,9 +41,8 @@ export default function WalletList({
 
   return (
     <div className="view">
-      <header className="topbar">
-        <span />
-        <h1>Card Wallet</h1>
+      <header className="wallet-header">
+        <h1 className="large-title">Card Wallet</h1>
         <button
           className="avatar-btn"
           title={`${user.name} — Sign out`}
@@ -61,13 +60,19 @@ export default function WalletList({
 
       <div className="list-body">
         {cards.length > 0 && (
-          <input
-            className="search"
-            type="search"
-            placeholder="Search cards…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+          <div className="search-wrap">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+              <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <input
+              className="search"
+              type="search"
+              placeholder="Search cards…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
         )}
 
         {categories.length > 0 && (

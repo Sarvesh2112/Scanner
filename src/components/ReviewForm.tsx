@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { BusinessCard, ParsedFields } from '../types'
+import Spinner from './Spinner'
 
 /**
  * Generate a unique id. crypto.randomUUID() only exists in a secure context
@@ -16,7 +17,7 @@ function newId(): string {
 interface Props {
   fields: ParsedFields
   imageDataUrl: string
-  onSave: (card: BusinessCard) => void
+  onSave: (card: BusinessCard) => Promise<void>
   onCancel: () => void
 }
 
@@ -33,12 +34,14 @@ const FIELD_DEFS: { key: keyof ParsedFields; label: string; type?: string }[] = 
 export default function ReviewForm({ fields, imageDataUrl, onSave, onCancel }: Props) {
   const [values, setValues] = useState<ParsedFields>(fields)
   const [category, setCategory] = useState('')
+  const [saving, setSaving] = useState(false)
 
   function update(key: keyof ParsedFields, value: string) {
     setValues((v) => ({ ...v, [key]: value }))
   }
 
-  function handleSave() {
+  async function handleSave() {
+    if (saving) return
     const card: BusinessCard = {
       id: newId(),
       ...values,
@@ -46,13 +49,19 @@ export default function ReviewForm({ fields, imageDataUrl, onSave, onCancel }: P
       imageDataUrl,
       createdAt: Date.now(),
     }
-    onSave(card)
+    setSaving(true)
+    try {
+      await onSave(card)
+      // On success the view switches away; leave saving true until unmount.
+    } catch {
+      setSaving(false)
+    }
   }
 
   return (
     <div className="view">
       <header className="topbar">
-        <button className="link" onClick={onCancel}>
+        <button className="link" onClick={onCancel} disabled={saving}>
           ‹ Back
         </button>
         <h1>Review details</h1>
@@ -94,8 +103,12 @@ export default function ReviewForm({ fields, imageDataUrl, onSave, onCancel }: P
           />
         </label>
 
-        <button className="btn primary full" onClick={handleSave}>
-          Save to wallet
+        <button
+          className="btn primary full"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? <Spinner /> : 'Save to wallet'}
         </button>
       </div>
     </div>
