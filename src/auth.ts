@@ -92,7 +92,6 @@ async function ensureInitialized() {
 /** Renders the official "Sign in with Google" button into `el`. */
 export async function renderGoogleButton(el: HTMLElement) {
   await ensureInitialized()
-  const width = Math.min(400, Math.max(240, Math.round(el.clientWidth) || 300))
   window.google!.accounts.id.renderButton(el, {
     type: 'standard',
     theme: 'filled_black',
@@ -100,7 +99,6 @@ export async function renderGoogleButton(el: HTMLElement) {
     text: 'continue_with',
     shape: 'pill',
     logo_alignment: 'center',
-    width,
   })
 }
 
