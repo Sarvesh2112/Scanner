@@ -8,6 +8,19 @@ import CaptureView from './components/CaptureView'
 import ReviewForm from './components/ReviewForm'
 import SignIn from './components/SignIn'
 
+/** Supabase throws plain objects ({ message, code, details, hint }), not Errors. */
+function formatErr(e: unknown): string {
+  if (e instanceof Error) return e.message
+  if (e && typeof e === 'object') {
+    const o = e as Record<string, unknown>
+    const parts = [o.message, o.details, o.hint, o.code && `(${o.code})`]
+      .filter(Boolean)
+      .join(' — ')
+    return parts || JSON.stringify(e)
+  }
+  return String(e)
+}
+
 export default function App() {
   const { user, signOut } = useAuth()
 
@@ -52,7 +65,7 @@ function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }
       setView({ name: 'wallet' })
     } catch (e) {
       console.error('Save failed:', e)
-      alert(`Save failed: ${e instanceof Error ? e.message : String(e)}`)
+      alert(`Save failed: ${formatErr(e)}`)
     }
   }
 
@@ -62,7 +75,7 @@ function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }
       setCards(await getAllCards())
     } catch (e) {
       console.error('Delete failed:', e)
-      alert(`Delete failed: ${e instanceof Error ? e.message : String(e)}`)
+      alert(`Delete failed: ${formatErr(e)}`)
     }
   }
 
