@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import type { BusinessCard, ParsedFields } from './types'
 import { deleteCard, getAllCards, saveCard } from './db'
@@ -47,16 +47,36 @@ export default function App() {
 
 type View =
   | { name: 'wallet' }
-  | { name: 'capture' }
+  | { name: 'capture'; imageDataUrl: string }
   | { name: 'review'; fields: ParsedFields; imageDataUrl: string }
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
 
 function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }) {
   const [cards, setCards] = useState<BusinessCard[]>([])
   const [view, setView] = useState<View>({ name: 'wallet' })
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getAllCards().then(setCards)
   }, [])
+
+  // The FAB tap triggers this synchronously so the camera opens within the
+  // user gesture (required on iOS); picking a photo jumps straight to review.
+  async function handleCameraFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // allow re-selecting the same file next time
+    if (!file) return
+    const imageDataUrl = await fileToDataUrl(file)
+    setView({ name: 'capture', imageDataUrl })
+  }
 
   async function handleSave(card: BusinessCard) {
     // Optimistically show the card and return to the wallet immediately;
@@ -86,6 +106,7 @@ function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }
   if (view.name === 'capture') {
     return (
       <CaptureView
+        initialImage={view.imageDataUrl}
         onCancel={() => setView({ name: 'wallet' })}
         onScanned={(fields, imageDataUrl) =>
           setView({ name: 'review', fields, imageDataUrl })
@@ -106,12 +127,22 @@ function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }
   }
 
   return (
-    <WalletList
-      cards={cards}
-      user={user}
-      onSignOut={onSignOut}
-      onScanNew={() => setView({ name: 'capture' })}
-      onDelete={handleDelete}
-    />
+    <>
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        onChange={handleCameraFile}
+      />
+      <WalletList
+        cards={cards}
+        user={user}
+        onSignOut={onSignOut}
+        onScanNew={() => cameraInputRef.current?.click()}
+        onDelete={handleDelete}
+      />
+    </>
   )
 }

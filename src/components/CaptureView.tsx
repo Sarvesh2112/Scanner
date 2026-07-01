@@ -4,6 +4,7 @@ import type { ParsedFields } from '../types'
 import AiSparkle from './AiSparkle'
 
 interface Props {
+  initialImage: string
   onScanned: (fields: ParsedFields, imageDataUrl: string) => void
   onCancel: () => void
 }
@@ -17,9 +18,9 @@ function fileToDataUrl(file: File): Promise<string> {
   })
 }
 
-export default function CaptureView({ onScanned, onCancel }: Props) {
+export default function CaptureView({ initialImage, onScanned, onCancel }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [preview, setPreview] = useState<string>('')
+  const [preview, setPreview] = useState<string>(initialImage)
   const [busy, setBusy] = useState(false)
   const [errorText, setErrorText] = useState('')
 
