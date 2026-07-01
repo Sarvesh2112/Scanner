@@ -28,8 +28,6 @@ export default function SignIn() {
         </div>
         <h1>Card Wallet</h1>
         <p className="muted">Scan, organize, and save business cards.</p>
-      </div>
-      <div className="signin-footer">
         <div ref={btnRef} className="google-btn-slot" />
         {error && <p className="error">{error}</p>}
       </div>
