@@ -1,14 +1,23 @@
 import { useMemo, useState } from 'react'
 import type { BusinessCard } from '../types'
+import type { GoogleUser } from '../auth'
 import CardItem from './CardItem'
 
 interface Props {
   cards: BusinessCard[]
+  user: GoogleUser
+  onSignOut: () => void
   onScanNew: () => void
   onDelete: (id: string) => void
 }
 
-export default function WalletList({ cards, onScanNew, onDelete }: Props) {
+export default function WalletList({
+  cards,
+  user,
+  onSignOut,
+  onScanNew,
+  onDelete,
+}: Props) {
   const [filter, setFilter] = useState('')
   const [query, setQuery] = useState('')
 
@@ -35,7 +44,19 @@ export default function WalletList({ cards, onScanNew, onDelete }: Props) {
       <header className="topbar">
         <span />
         <h1>Card Wallet</h1>
-        <span />
+        <button
+          className="avatar-btn"
+          title={`${user.name} — Sign out`}
+          onClick={onSignOut}
+        >
+          {user.picture ? (
+            <img src={user.picture} alt={user.name} referrerPolicy="no-referrer" />
+          ) : (
+            <span className="avatar-fallback">
+              {user.name.charAt(0).toUpperCase()}
+            </span>
+          )}
+        </button>
       </header>
 
       <div className="list-body">

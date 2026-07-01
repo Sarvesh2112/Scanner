@@ -1,16 +1,43 @@
 import { useEffect, useState } from 'react'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import type { BusinessCard, ParsedFields } from './types'
 import { deleteCard, getAllCards, saveCard } from './db'
+import { useAuth, type GoogleUser } from './auth'
 import WalletList from './components/WalletList'
 import CaptureView from './components/CaptureView'
 import ReviewForm from './components/ReviewForm'
+import SignIn from './components/SignIn'
+
+export default function App() {
+  const { user, signOut } = useAuth()
+
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={user ? <Navigate to="/" replace /> : <SignIn />}
+      />
+      <Route
+        path="/"
+        element={
+          user ? (
+            <Wallet user={user} onSignOut={signOut} />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
 
 type View =
   | { name: 'wallet' }
   | { name: 'capture' }
   | { name: 'review'; fields: ParsedFields; imageDataUrl: string }
 
-export default function App() {
+function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }) {
   const [cards, setCards] = useState<BusinessCard[]>([])
   const [view, setView] = useState<View>({ name: 'wallet' })
 
@@ -54,6 +81,8 @@ export default function App() {
   return (
     <WalletList
       cards={cards}
+      user={user}
+      onSignOut={onSignOut}
       onScanNew={() => setView({ name: 'capture' })}
       onDelete={handleDelete}
     />
