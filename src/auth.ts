@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
+import { supabase } from './supabase'
 
-/** Profile decoded from the Google ID token (JWT). */
+/** The signed-in user, derived from the Supabase session. */
 export interface GoogleUser {
-  sub: string // stable Google account id
+  sub: string // Supabase user id (== auth.uid(), used for RLS)
   email: string
   name: string
   picture: string
 }
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
-const STORAGE_KEY = 'card-wallet-user'
 const GIS_SRC = 'https://accounts.google.com/gsi/client'
 
 // Minimal shape of the Google Identity Services API we use.
@@ -20,7 +21,6 @@ interface GoogleAccountsId {
   initialize(config: {
     client_id: string
     callback: (res: CredentialResponse) => void
-    auto_select?: boolean
   }): void
   renderButton(
     parent: HTMLElement,
@@ -34,15 +34,15 @@ declare global {
   }
 }
 
-function decodeJwt(token: string): GoogleUser {
-  const payload = JSON.parse(
-    atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')),
-  )
+function sessionToUser(session: Session | null): GoogleUser | null {
+  if (!session) return null
+  const u = session.user
+  const m = u.user_metadata ?? {}
   return {
-    sub: payload.sub,
-    email: payload.email,
-    name: payload.name,
-    picture: payload.picture,
+    sub: u.id,
+    email: u.email ?? m.email ?? '',
+    name: m.full_name ?? m.name ?? u.email ?? '',
+    picture: m.avatar_url ?? m.picture ?? '',
   }
 }
 
@@ -62,25 +62,6 @@ function loadGis(): Promise<void> {
   return gisPromise
 }
 
-// Single subscriber list so every hook instance stays in sync.
-type Listener = (user: GoogleUser | null) => void
-const listeners = new Set<Listener>()
-
-function readStored(): GoogleUser | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as GoogleUser) : null
-  } catch {
-    return null
-  }
-}
-
-function setUser(user: GoogleUser | null) {
-  if (user) localStorage.setItem(STORAGE_KEY, JSON.stringify(user))
-  else localStorage.removeItem(STORAGE_KEY)
-  listeners.forEach((l) => l(user))
-}
-
 let initialized = false
 async function ensureInitialized() {
   if (initialized) return
@@ -88,7 +69,14 @@ async function ensureInitialized() {
   await loadGis()
   window.google!.accounts.id.initialize({
     client_id: CLIENT_ID,
-    callback: (res) => setUser(decodeJwt(res.credential)),
+    callback: async (res) => {
+      // Exchange the Google ID token for a Supabase session (enables RLS).
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: res.credential,
+      })
+      if (error) console.error('Supabase sign-in failed:', error.message)
+    },
   })
   initialized = true
 }
@@ -103,21 +91,26 @@ export async function renderGoogleButton(el: HTMLElement) {
   })
 }
 
-export function signOut() {
+export async function signOut() {
   window.google?.accounts.id.disableAutoSelect()
-  setUser(null)
+  await supabase.auth.signOut()
 }
 
-/** Tracks the signed-in Google user, persisted across reloads in localStorage. */
+/** Tracks the signed-in user via the Supabase session. */
 export function useAuth() {
-  const [user, setUserState] = useState<GoogleUser | null>(readStored)
+  const [user, setUser] = useState<GoogleUser | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    listeners.add(setUserState)
-    return () => {
-      listeners.delete(setUserState)
-    }
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(sessionToUser(data.session))
+      setLoading(false)
+    })
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(sessionToUser(session))
+    })
+    return () => sub.subscription.unsubscribe()
   }, [])
 
-  return { user, signOut }
+  return { user, loading, signOut }
 }
