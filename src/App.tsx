@@ -63,9 +63,16 @@ function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }
   const [cards, setCards] = useState<BusinessCard[]>([])
   const [view, setView] = useState<View>({ name: 'wallet' })
   const cameraInputRef = useRef<HTMLInputElement>(null)
+  // Ids deleted this session; filtered out of any list so a confirmed delete
+  // can never be resurrected by a re-fetch or a transient error.
+  const deletedIds = useRef<Set<string>>(new Set())
+
+  function applyCards(list: BusinessCard[]) {
+    setCards(list.filter((c) => !deletedIds.current.has(c.id)))
+  }
 
   useEffect(() => {
-    getAllCards().then(setCards)
+    getAllCards().then(applyCards)
   }, [])
 
   // The FAB tap triggers this synchronously so the camera opens within the
@@ -93,13 +100,15 @@ function Wallet({ user, onSignOut }: { user: GoogleUser; onSignOut: () => void }
   }
 
   function handleDelete(id: string) {
-    // Remove from the UI immediately; delete in the background, restore on error.
-    const removed = cards.find((c) => c.id === id)
+    // Remove from the UI immediately and permanently for this session; delete
+    // in the background. On a real error, reconcile with the server truth.
+    deletedIds.current.add(id)
     setCards((cs) => cs.filter((c) => c.id !== id))
     deleteCard(id).catch((e) => {
       console.error('Delete failed:', e)
       alert(`Delete failed: ${formatErr(e)}`)
-      if (removed) setCards((cs) => [removed, ...cs].sort((a, b) => b.createdAt - a.createdAt))
+      deletedIds.current.delete(id)
+      getAllCards().then(applyCards).catch(() => {})
     })
   }
 
