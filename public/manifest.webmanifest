@@ -1,6 +1,6 @@
 {
-  "name": "Card Wallet",
-  "short_name": "Card Wallet",
+  "name": "cardZee",
+  "short_name": "cardZee",
   "description": "Scan business cards and save them as contacts",
   "start_url": "/",
   "display": "standalone",

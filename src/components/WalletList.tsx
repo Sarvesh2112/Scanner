@@ -55,7 +55,7 @@ export default function WalletList({
               <circle cx="17" cy="13" r="1.6" fill="currentColor" />
             </svg>
           </span>
-          <h1 className="large-title">Card Wallet</h1>
+          <h1 className="large-title">cardZee</h1>
         </div>
         <div className="account">
           <button

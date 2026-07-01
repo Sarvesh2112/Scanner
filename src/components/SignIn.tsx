@@ -26,7 +26,7 @@ export default function SignIn() {
             <circle cx="17" cy="13" r="1.6" fill="currentColor" />
           </svg>
         </div>
-        <h1>Card Wallet</h1>
+        <h1>cardZee</h1>
         <p className="muted">Scan, organize, and save business cards.</p>
         <div ref={btnRef} className="google-btn-slot" />
         {error && <p className="error">{error}</p>}

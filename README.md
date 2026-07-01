@@ -1,4 +1,4 @@
-# Card Wallet
+# cardZee
 
 A digital wallet for business cards, inspired by COVVE Scan. Capture a card photo,
 auto-extract the fields, tag it, and save it to your iPhone Contacts with one tap.
