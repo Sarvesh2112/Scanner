@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { extractCardFields } from '../gemini'
 import type { ParsedFields } from '../types'
 import AiSparkle from './AiSparkle'
@@ -20,25 +20,28 @@ function fileToDataUrl(file: File): Promise<string> {
 
 export default function CaptureView({ initialImage, onScanned, onCancel }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [preview, setPreview] = useState<string>(initialImage)
-  const [busy, setBusy] = useState(false)
+  const started = useRef(false)
+  const [image, setImage] = useState(initialImage)
+  const [busy, setBusy] = useState(true)
   const [errorText, setErrorText] = useState('')
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setErrorText('')
-    const dataUrl = await fileToDataUrl(file)
-    setPreview(dataUrl)
-  }
+  // Analyze straight away once the photo arrives (skip a preview step — iOS's
+  // camera already offers Use Photo / Retake). Guarded against StrictMode's
+  // double-invoke.
+  useEffect(() => {
+    if (started.current) return
+    started.current = true
+    scan(initialImage)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  async function handleScan() {
-    if (!preview) return
+  async function scan(src: string) {
+    setImage(src)
     setBusy(true)
     setErrorText('')
     try {
-      const fields = await extractCardFields(preview)
-      onScanned(fields, preview)
+      const fields = await extractCardFields(src)
+      onScanned(fields, src)
     } catch (err) {
       console.error(err)
       setErrorText(
@@ -48,24 +51,25 @@ export default function CaptureView({ initialImage, onScanned, onCancel }: Props
     }
   }
 
+  async function handleRetake(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    scan(await fileToDataUrl(file))
+  }
+
   return (
     <div className="view">
       <header className="topbar">
         <button className="link" onClick={onCancel} disabled={busy}>
           ‹ Back
         </button>
-        <h1>Scan card</h1>
+        <h1>{busy ? 'Analyzing…' : 'Scan card'}</h1>
         <span />
       </header>
 
       <div className="capture-body">
-        {preview ? (
-          <img className="preview" src={preview} alt="Card preview" />
-        ) : (
-          <div className="placeholder">
-            <p>Take a photo of the business card</p>
-          </div>
-        )}
+        <img className="preview" src={image} alt="Scanned card" />
 
         <input
           ref={inputRef}
@@ -73,21 +77,19 @@ export default function CaptureView({ initialImage, onScanned, onCancel }: Props
           accept="image/*"
           capture="environment"
           hidden
-          onChange={handleFile}
+          onChange={handleRetake}
         />
 
         {busy ? (
           <AiSparkle />
         ) : (
           <div className="actions">
-            <button className="btn" onClick={() => inputRef.current?.click()}>
-              {preview ? 'Retake photo' : '📷 Open camera'}
+            <button className="btn primary" onClick={() => scan(image)}>
+              Try again
             </button>
-            {preview && (
-              <button className="btn primary" onClick={handleScan}>
-                Scan card
-              </button>
-            )}
+            <button className="btn" onClick={() => inputRef.current?.click()}>
+              Retake photo
+            </button>
             {errorText && <p className="error">{errorText}</p>}
           </div>
         )}
